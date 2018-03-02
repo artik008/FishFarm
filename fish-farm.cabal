@@ -1,0 +1,39 @@
+name:                fish-farm
+version:             0.1
+-- synopsis:
+-- description:
+-- homepage:
+-- license:
+-- license-file:
+author:              Artem Shitik
+maintainer:          artik008@yandex.ru
+copyright:           2018 Artem Shitik
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.24
+
+library
+  hs-source-dirs:      src
+  ghc-options:         -Wall -fno-warn-type-defaults
+  exposed-modules:     FishFarm
+                       Images 
+                       Config
+                       Models 
+                       GUI
+                       Ponds
+  build-depends:       base >= 4.7 && <= 4.9.1.0
+                     , gloss
+                     , gloss-juicy
+                     , random
+                     , stm
+  default-language:    Haskell2010
+
+executable fish-farm
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base >= 4.7 && <= 4.9.1.0
+                     , fish-farm
+                     , gloss
+                     , gloss-juicy
+  default-language:    Haskell2010
