@@ -21,6 +21,7 @@ library
                        Models 
                        GUI
                        Ponds
+                       Contract
   build-depends:       base >= 4.7 && <= 4.9.1.0
                      , gloss
                      , gloss-juicy

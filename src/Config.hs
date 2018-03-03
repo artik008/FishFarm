@@ -8,18 +8,18 @@ defaultPopulation :: Int
 defaultPopulation = 1000
 
 drawScreenWidth :: Float
-drawScreenWidth = 1500.0
+drawScreenWidth = 950.0
 
 drawScreenHeight :: Float
-drawScreenHeight = 768.0
+drawScreenHeight = 384.0
 
 -- | Ширина экрана.
 screenWidth :: Int
-screenWidth =  1366
+screenWidth =  883
 
 -- | Высота экрана.
 screenHeight :: Int
-screenHeight = 768
+screenHeight = 584
 
 -- | Положение верхнего края экрана.
 screenUp :: Float

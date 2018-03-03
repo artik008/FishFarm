@@ -8,6 +8,7 @@ import Config
 import Models
 import GUI
 import Ponds
+import Contract
 
 run :: Images -> IO ()
 run images = do
@@ -26,7 +27,7 @@ run images = do
     handleWorld _ (EventKey (SpecialKey KeyEsc) Down _ _) _ = exitSuccess
     handleWorld g e w = atomically $ do
       u <- readTVar w
-      writeTVar w (handleModel g e u)
+      writeTVar w (handleModel g e images u)
       return w
 
     updateWorld dt w = do
@@ -41,14 +42,15 @@ initModel :: Images -> Model
 initModel images = Model
   { ponds = [ initPond 0 images Piranha defaultPopulation
             , initPond 1 images Piranha defaultPopulation
-            -- , initPond 2 images Piranha defaultPopulation
+            , initPond 2 images Piranha defaultPopulation
             , initPond 3 images Piranha defaultPopulation
-            -- , initPond 4 images Piranha defaultPopulation
-            , initPond 5 images Piranha defaultPopulation
-            -- , initPond 6 images Piranha defaultPopulation
-            , initPond 7 images Piranha defaultPopulation
             ]
-  , gui   = initGUI images
+  , startimg   = images
+  , startpop   = defaultPopulation
+  , gui        = initGUI images 4
+  , contract   = defaultContract
+  , capital    = 500
+  , conditions = Conditions 0.01
   }
 
 updateModel :: Float -> Model -> Model
@@ -67,8 +69,7 @@ drawModel images  m = pictures
     getPondCoords p = if l <= 4 
       then (((num p)+1.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 0.0 - (screenUp))
       else if (number p) < 4 then (((num p)+1.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 0.0 - (screenUp))
-                               else (((num p)-3.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 200.0 - (screenUp))
---  ++ drawMaybe [drawBack (imageStat images) (tableback u)]
+                               else (((num p)-3.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 150.0 - (screenUp))
 
 
 -- | Отобразить фон.
@@ -80,10 +81,10 @@ drawBackground image = translate 0 0 image
 -- =========================================
 
 -- | Обработчик событий игры.
-handleModel :: StdGen -> Event -> Model -> Model
+handleModel :: StdGen -> Event -> Images -> Model -> Model
 handleModel = handleUserAction 
 
 -- | Обработка нажатий игрока
-handleUserAction :: StdGen -> Event -> Model -> Model
-handleUserAction _ (EventKey (MouseButton LeftButton) Down _ coords) m = checkButtons m coords
-handleUserAction _ _ m = m
+handleUserAction :: StdGen -> Event -> Images -> Model -> Model
+handleUserAction _ (EventKey (MouseButton LeftButton) Down _ coords) img m = checkButtons m img coords
+handleUserAction _ _ _ m = m

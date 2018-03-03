@@ -15,4 +15,4 @@ initPond num img ft pop =
          }
 
 drawPond :: (Float, Float) -> Picture -> Pond -> Picture
-drawPond (x,y) pic pnd = pictures ([translate x y pic, translate (x + 20) (y + 20) (picture pnd)])
+drawPond (x,y) pic pnd = pictures ([translate x y pic, translate (x + 10) (y + 10) (picture pnd)])
