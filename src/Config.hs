@@ -5,7 +5,7 @@ module Config where
 -- =========================================
 
 defaultPopulation :: Int
-defaultPopulation = 1000
+defaultPopulation = 100
 
 drawScreenWidth :: Float
 drawScreenWidth = 950.0

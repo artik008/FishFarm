@@ -7,8 +7,9 @@ import Graphics.Gloss.Interface.IO.Game
 import Config
 import Models
 import GUI
+import Control
 import Ponds
-import Contract
+import Inits
 
 run :: Images -> IO ()
 run images = do
@@ -31,41 +32,38 @@ run images = do
       return w
 
     updateWorld dt w = do
-      atomically $ modifyTVar w (updateModel dt)
+      atomically $ modifyTVar w (updateModel dt images)
       return w
 
--- =========================================
--- Отрисовка игровой вселенной
--- =========================================
 
-initModel :: Images -> Model
-initModel images = Model
-  { ponds = [ initPond 0 images Piranha defaultPopulation
-            , initPond 1 images Piranha defaultPopulation
-            , initPond 2 images Piranha defaultPopulation
-            , initPond 3 images Piranha defaultPopulation
-            ]
-  , startimg   = images
-  , startpop   = defaultPopulation
-  , gui        = initGUI images 4
-  , contract   = defaultContract
-  , capital    = 500
-  , conditions = Conditions 0.01
+updateModel :: Float -> Images -> Model -> Model
+updateModel _ img m = if (sum (map (truncate.adult) (ponds m)) == 0) && (lostFish (contract m) > 0) && ((capital m) < (fromIntegral $ (lostFish (contract m)) * (fine (contract m))))
+  then end False img m
+  else if (duration (contract m)) < (week m) 
+       then end True img m
+       else m {
+    gui = (gui m) {
+      labels = updateInfoLables m Next
+    }
+  , capital  = if (sum (map (truncate.adult) (ponds m)) == 0) && (lostFish (contract m) > 0) then (capital m) - (fromIntegral $ (lostFish (contract m)) * (fine (contract m))) else capital m
+  , contract = (contract m) {
+                 lostFish = if (sum (map (truncate.adult) (ponds m)) == 0) && (lostFish (contract m) > 0) then 0 else (lostFish (contract m))
+               }
   }
-
-updateModel :: Float -> Model -> Model
-updateModel _ m = m
 
 -- | Отобразить игровую вселенную.
 drawModel :: Images -> Model -> Picture
 drawModel images  m = pictures
   ([ drawBackground (imageBackground images)
    , pictures (map (\x -> drawPond (getPondCoords x) (pondpic images) x) (ponds m))
+   , if fst (stats m) then drawStats (snd (stats m)) images else Blank  
    , drawGUI (gui m)
-  ]) 
+   , if pondInf then drawPondsInfo (ponds m) images else Blank  
+   ]) 
   where
-    l = fromIntegral $ length (ponds m)
-    num pnd = fromIntegral $ number pnd
+    l               = fromIntegral $ length (ponds m)
+    num pnd         = fromIntegral $ number pnd
+    (pondInf, _)    = comPriceList m 
     getPondCoords p = if l <= 4 
       then (((num p)+1.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 0.0 - (screenUp))
       else if (number p) < 4 then (((num p)+1.0)*(drawScreenWidth/(5.0)) - (screenRight*1.6), 0.0 - (screenUp))
@@ -74,7 +72,7 @@ drawModel images  m = pictures
 
 -- | Отобразить фон.
 drawBackground :: Picture -> Picture
-drawBackground image = translate 0 0 image
+drawBackground image = translate (-220) 0 image
 
 -- =========================================
 -- Обработка событий
@@ -86,5 +84,13 @@ handleModel = handleUserAction
 
 -- | Обработка нажатий игрока
 handleUserAction :: StdGen -> Event -> Images -> Model -> Model
-handleUserAction _ (EventKey (MouseButton LeftButton) Down _ coords) img m = checkButtons m img coords
+handleUserAction g (EventKey (MouseButton LeftButton) Down _ coords) img m = checkButtons g m img coords
+handleUserAction _ (EventKey (Char 'p') Down _ _) _ m = 
+  if (fst (comPriceList m) == False) 
+  then m { comPriceList = (True, (snd $ (comPriceList m)))} 
+  else m { comPriceList = (False, (snd $ (comPriceList m)))}
+handleUserAction _ (EventKey (Char 's') Down _ _) _ m = 
+  if (fst (stats m) == False) 
+  then m { stats = (True, (snd $ (stats m)))} 
+  else m { stats = (False, (snd $ (stats m)))}
 handleUserAction _ _ _ m = m
